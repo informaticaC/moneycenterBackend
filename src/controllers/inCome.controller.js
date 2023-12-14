@@ -16,8 +16,8 @@ const create = catchError(async(req, res) => {
     // console.log('req.body.user.id:==>',req.body.user.id)
     // const userId = req.body.user.id;
     
-    const {name, description, amount, userId, date, transactiontypeId} = req.body;
-    const body = {name, description, amount, userId, date, transactiontypeId};
+    const {name, description, amount, userId, date, transactiontypeId, icon} = req.body;
+    const body = {name, description, amount, userId, date, transactiontypeId, icon};
     const result = await InCome.create(body);
     return res.status(201).json(result);
 });

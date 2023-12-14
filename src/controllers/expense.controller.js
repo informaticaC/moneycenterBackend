@@ -15,9 +15,9 @@ const getAllByUserId = catchError(async(req, res) => {
 
 const create = catchError(async(req, res) => {
     
-    const {name, description, amount, date, userId, transactiontypeId} = req.body;
+    const {name, description, amount, date, userId, transactiontypeId, icon} = req.body;
 
-    const body = {name, description, amount, date, userId, transactiontypeId};
+    const body = {name, description, amount, date, userId, transactiontypeId, icon};
 
     const result = await Expense.create(req.body);
         

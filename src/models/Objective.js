@@ -29,6 +29,10 @@ const Objective = sequelize.define('objective', {
     type: DataTypes.STRING, 
     allowNull: false,
   },
+  icon:{
+    type: DataTypes.TEXT,
+    allowNull: true
+  }
 });
 
 module.exports = Objective;

@@ -22,6 +22,10 @@ const Expense = sequelize.define('expenses', {
     type: DataTypes.DATEONLY,
     allowNull: true
   },
+  icon:{
+    type: DataTypes.TEXT,
+    allowNull: true
+  }
 });
 
 module.exports = Expense;
