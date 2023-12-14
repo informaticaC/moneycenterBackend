@@ -14,13 +14,17 @@ User.hasMany(InCome)
 Objective.belongsTo(User)
 User.hasMany(Objective)
 
+//TransactionType => userId
+TransactionType.belongsTo(User)
+User.hasMany(TransactionType)
+
 //TransactionType => ExpensesId
-TransactionType.belongsTo(Expense)
-Expense.hasMany(TransactionType)
+Expense.belongsTo(TransactionType)
+TransactionType.hasMany(Expense)
 
 //TransactionType => InComeId
-TransactionType.belongsTo(InCome)
-InCome.hasMany(TransactionType)
+InCome.belongsTo(TransactionType)
+TransactionType.hasMany(InCome)
 
 //Expenses => UsersId
 Expense.belongsTo(User) 

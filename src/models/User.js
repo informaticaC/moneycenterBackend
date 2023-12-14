@@ -35,7 +35,7 @@ const User = sequelize.define('user', {
     },
 
     googleId: {
-      type: DataTypes.STRING,
+      type: DataTypes.BOOLEAN,
       allowNull: true
     },
 
@@ -43,7 +43,19 @@ const User = sequelize.define('user', {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false
+  },
+  actualToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true,
+    defaultValue: null
+  },
+  previousToken: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: true
   }
+
    
   });
 

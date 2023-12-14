@@ -18,9 +18,9 @@ const Expense = sequelize.define('expenses', {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  payment_date: {
-    type: DataTypes.DATEONLY, 
-    allowNull: true,
+  date: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
   },
 });
 

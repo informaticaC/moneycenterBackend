@@ -1,21 +1,23 @@
 const catchError = require('../utils/catchError');
 const InCome = require('../models/InCome');
 const User = require('../models/User');
+const TransactionType = require('../models/TransactionType')
 
 
 
 const getAll = catchError(async(req, res) => {
     
-    const results = await InCome.findAll({include: User});
+    const results = await InCome.findAll({include: TransactionType});
     return res.json(results);
 });
 
 
 const create = catchError(async(req, res) => {
-    console.log('req.body.user.id:==>',req.body.user.id)
-    const userId = req.body.user.id;
-    const {name, description, amount}= req.body;
-    const body = {name, description, amount, userId};
+    // console.log('req.body.user.id:==>',req.body.user.id)
+    // const userId = req.body.user.id;
+    
+    const {name, description, amount, userId, date, transactiontypeId} = req.body;
+    const body = {name, description, amount, userId, date, transactiontypeId};
     const result = await InCome.create(body);
     return res.status(201).json(result);
 });
@@ -30,6 +32,15 @@ const setUser = catchError(async(req, res) =>{ //incomes/:id/users
     
 })
 
+const setTransactionType = catchError(async(req, res) => {
+    const {id} = req.params;
+    const income = await InCome.findByPk(id);
+    await income.setTransactionType(req.body);
+
+    const transactionTypes = await income.getTransactionType()
+    return res.json(transactionTypes) 
+})
+
 const getOne = catchError(async(req, res) => {
     const { id } = req.params;
     const result = await InCome.findByPk(id, {include: User});
@@ -38,8 +49,8 @@ const getOne = catchError(async(req, res) => {
 });
 
 const getAllByUserId = catchError(async(req, res) => {
-    const { userId } = req.params;
-    const incomes = await InCome.findAll({ where : { userId } });
+    const userId = req.params;
+    const incomes = await InCome.findAll({ where : userId });
        
     return res.json({incomes});
 });
@@ -67,5 +78,6 @@ module.exports = {
     remove,
     update,
     setUser,
-    getAllByUserId
+    getAllByUserId,
+    setTransactionType
 }

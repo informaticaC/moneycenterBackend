@@ -15,6 +15,10 @@ const InCome = sequelize.define('income', {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
+    date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true
+    }
     //userId
     
   

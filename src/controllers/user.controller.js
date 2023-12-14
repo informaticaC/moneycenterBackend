@@ -11,34 +11,24 @@ const { where, json } = require('sequelize');
 const  userExist  = require('../utils/userExist');
 //const { response } = require('../app');
 const InCome = require('../models/InCome');
+const Expense = require('../models/Expense');
+const Objective = require('../models/Objective');
 
 const getAll = catchError(async(req, res) => {
   
-    const results = await User.findAll({include : InCome});
+    const results = await User.findAll({include: Objective});
     return res.json(results);
 });
 
-//const {ifUserExist} = userExist()
-
-const createUser = async (userBody) => {  //Start createUser
-  //const userExist = await User.findAll({where: {email: userBody.email}});
-
-  // if (userExist.length !== 0) {
-  //   console.log('userExist: ===>', userExist[0].dataValues.email);
-  //   const res = (`User with email ${userBody.email} already exists!!`)
-  //   return res;//res.json(`user with email ${email} already exists!!`);
-    
-  // }
- 
-
-  if (await userExist(userBody)) return userBody
+const createUser = async (userBody) => {  //Aquí se crea el usuario, ya sea de google o desde el formulario de usuario y password
+  
+  if (await userExist(userBody)) return null
     else {
     const newUser = await User.create(userBody);
     //console.log('l 21 newUser user created:===>', newUser.dataValues);
     return newUser;
 
   }
-    
     
 }/// End createUser
 
@@ -51,11 +41,12 @@ const create = catchError(async(req, res) => {
     const hashPassword = await bcrypt.hash(password, 10);
     const body = {firstname, lastname, phone, email, image, password: hashPassword, role: defaultRole};
     const result = await createUser(body) ;
-    const verification = await sendOTP(phone);
-    return res.json({ result, verification});
+    //const verification = await sendOTP(phone);
+    //return res.json({ result, verification});
     console.log(result);
+    if (!result) return res.json(`The email ${body.email} is already registered`);
     return res.json(result);
-  }  else { return res.sendStatus(500).json({ error: 'Password field could not be empty'})}   
+  }  else { return res.sendStatus(500)}   
 });
 
 
@@ -82,7 +73,7 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
           email: salida.getPayload().email,
           image: salida.getPayload().picture
         }
-        console.log('l94 userVerified.email:==>',userVerified.email);
+        //console.log('l94 userVerified.email:==>',userVerified.email);
         userToCreate = {
             firstname: userVerified.firstname,
             lastname: userVerified.lastname,
@@ -91,25 +82,25 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
             password: null, 
             role: "user", 
             image: userVerified.image,
+            googleId: true,
             isVerified: true
           
         }
         //console.log('l 92 userToCreate:==>', userToCreate);
         async function goToCreate(userToCreate){
-          console.log('l 94 userToCreate:==>', userToCreate);
+          //console.log('l 94 userToCreate:==>', userToCreate);
           const newUser = await createUser(userToCreate);
           return(newUser);
         }
         
-
         goToCreate(userToCreate).then((respuesta)=> {
-          const token = jwt.sign(
+          const token = jwt.sign( // cuando el usuario se crea en la base de datos creamos el token para devolverlo junto con el usuario creado
             {respuesta},
             process.env.TOKEN_SECRET,
             {expiresIn:"1d"}
-        ) 
+          ) 
             console.log(json({respuesta, token }))
-            console.log('l 94 respuesta:==>>>', respuesta);
+           // console.log('l 103 respuesta:==>>>', respuesta);
             return res.json({respuesta, token})
         }).catch(console.error);
        
@@ -174,13 +165,14 @@ const verificarOTP = catchError(async (req, res) => {
 
   const login = catchError(async (req,res)=>{
     const {email, password} = req.body
+    if (!password) return res.sendStatus(401)
     //verificacion email
     const user = await User.findOne({where:{email}})
-    
-    const isValidPassword = await bcrypt.compare(password,user.password )
-    if(!isValidPassword) return res.sendStatus(401)
-    if(!user.isVerified) return res.sendStatus(401)
-
+    if (!user.password) return res.sendStatus(401) 
+    if(user.isGoogleid) return res.sendStatus(401)
+      const isValidPassword = await bcrypt.compare(password, user.password )
+      if(!isValidPassword) return res.sendStatus(401)
+     // if(!user.isVerified) return res.sendStatus(401)
     const token = jwt.sign(
         {user},
         process.env.TOKEN_SECRET,

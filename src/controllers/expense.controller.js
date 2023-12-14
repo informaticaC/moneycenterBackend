@@ -1,5 +1,6 @@
 const catchError = require('../utils/catchError');
 const Expense = require('../models/Expense');
+const TransactionType = require('../models/TransactionType')
 
 const getAll = catchError(async(req, res) => {
     const results = await Expense.findAll();
@@ -7,19 +8,19 @@ const getAll = catchError(async(req, res) => {
 });
 
 const getAllByUserId = catchError(async(req, res) => {
-    const { userId } = req.params;
-    const expenses = await Expense.findAll({ where : { userId } });
+    const userId = req.params;
+    const expenses = await Expense.findAll({ where : userId });
     return res.json({expenses});
 });
 
 const create = catchError(async(req, res) => {
-    // console.log('req.body.user.id:==>',req.body.user.id)
-    // const userId = await req.body.user.id;
-    const {name, description, amount, userId} = req.body;
+    
+    const {name, description, amount, date, userId, transactiontypeId} = req.body;
 
-    const body = {name, description, amount, userId};
+    const body = {name, description, amount, date, userId, transactiontypeId};
 
     const result = await Expense.create(req.body);
+        
     return res.status(201).json(result);
 });
 
@@ -32,7 +33,7 @@ const getOne = catchError(async(req, res) => {
 
 const remove = catchError(async(req, res) => {
     const { id } = req.params;
-    await Expense.destroy({ where: {id} });
+    await Expense.destroy({ where: { id } });
     return res.sendStatus(204);
 });
 

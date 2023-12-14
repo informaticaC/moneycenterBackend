@@ -1,4 +1,4 @@
-const { getAll, create, getOne, remove, update, setUser, getAllByUserId } = require('../controllers/inCome.controller');
+const { getAll, create, getOne, remove, update, setUser, getAllByUserId, setTransactionType } = require('../controllers/inCome.controller');
 const express = require('express');
 const verifyJWT = require('../utils/verifyJwt');
 
@@ -18,5 +18,8 @@ routerInCome.route('/byUserId/:userId')
 
 routerInCome.route('/:id/users')
     .post(verifyJWT, setUser);
+
+routerInCome.route('/:id/settransactiontype')
+    .post(verifyJWT, setTransactionType);
 
 module.exports = routerInCome;

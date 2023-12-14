@@ -1,16 +1,25 @@
 const catchError = require('../utils/catchError');
 const Objective = require('../models/Objective');
-
+const User = require ('../models/User')
 
 const getAll = catchError(async(req, res) => {
     const results = await Objective.findAll();
     return res.json(results);
 });
 
+const getAllByUserId = catchError(async(req, res) => {
+    const  userId = req.params;
+    const results = await Objective.findAll({where: userId });
+    return res.json(results);
+});
+
+
+
 const create = catchError(async(req, res) => {
-    const userId = await req.user.id;
-    const {name, description, budget, deadline} = req.body;
-    const body = {name, description, budget, deadline, userId};
+    
+    const partialBudget = 0;
+    const {name, description, budget, deadline, userId, icon, color} = req.body;
+    const body = {name, description, budget, partialBudget, deadline, icon, color , userId};
     const result = await Objective.create(body);
     return res.status(201).json(result);
 });
@@ -40,6 +49,7 @@ const update = catchError(async(req, res) => {
 
 module.exports = {
     getAll,
+    getAllByUserId,
     create,
     getOne,
     remove,
