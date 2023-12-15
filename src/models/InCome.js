@@ -18,10 +18,13 @@ const InCome = sequelize.define('income', {
     date: {
       type: DataTypes.DATEONLY,
       allowNull: true
+    },
+    icon:{
+      type: DataTypes.TEXT,
+      allowNull: true
     }
     //userId
     
-  
   });
   
   module.exports = InCome;
