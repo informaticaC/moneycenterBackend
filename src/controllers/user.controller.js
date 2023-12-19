@@ -22,7 +22,11 @@ const getAll = catchError(async(req, res) => {
 
 const createUser = async (userBody) => {  //Aquí se crea el usuario, ya sea de google o desde el formulario de usuario y password
   
-  if (await userExist(userBody)) return null
+  if (await userExist(userBody)){
+    const user = await userExist(userBody)
+    console.log('linea 27:=====<<<>>>>', user[0])
+    return user[0]
+  } 
     else {
     const newUser = await User.create(userBody);
     //console.log('l 21 newUser user created:===>', newUser.dataValues);
@@ -36,7 +40,8 @@ const create = catchError(async(req, res) => {
   console.log('l19 req.body.email: ==> ', req.body.email);
   const { firstname, lastname, phone, email, password, role, image } = req.body;
   const defaultRole = role || "user";
-   
+  const userExist = await User.findAll({where: {email}})
+  if (userExist.length != 0) return res.json(`The email ${email} is already registered`);
   if (password) {
     const hashPassword = await bcrypt.hash(password, 10);
     const body = {firstname, lastname, phone, email, image, password: hashPassword, role: defaultRole};
@@ -86,9 +91,10 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
             isVerified: true
           
         }
-        //console.log('l 92 userToCreate:==>', userToCreate);
+        //console.log('l 89 userToCreate:==>', userToCreate);
+
         async function goToCreate(userToCreate){
-          //console.log('l 94 userToCreate:==>', userToCreate);
+          //console.log('l 91 userToCreate:==>', userToCreate);
           const newUser = await createUser(userToCreate);
           return(newUser);
         }
@@ -99,8 +105,8 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
             process.env.TOKEN_SECRET,
             {expiresIn:"1d"}
           ) 
-            console.log(json({respuesta, token }))
-           // console.log('l 103 respuesta:==>>>', respuesta);
+            //console.log(json({respuesta, token }))
+            //console.log('l 108 respuesta:==>>>', respuesta);
             return res.json({respuesta, token})
         }).catch(console.error);
        
@@ -164,10 +170,12 @@ const verificarOTP = catchError(async (req, res) => {
   });
 
   const login = catchError(async (req,res)=>{
+    console.log(req.body)
     const {email, password} = req.body
     if (!password) return res.sendStatus(401)
     //verificacion email
     const user = await User.findOne({where:{email}})
+    if(!user) return res.sendStatus(401)
     if (!user.password) return res.sendStatus(401) 
     if(user.isGoogleid) return res.sendStatus(401)
       const isValidPassword = await bcrypt.compare(password, user.password )
