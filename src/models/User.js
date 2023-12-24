@@ -47,12 +47,12 @@ const User = sequelize.define('user', {
   actualToken: {
     type: DataTypes.STRING,
     allowNull: true,
-    unique: true,
+    //unique: true,
     defaultValue: null
   },
   previousToken: {
     type: DataTypes.STRING,
-    unique: true,
+    //unique: true,
     allowNull: true
   }
 
