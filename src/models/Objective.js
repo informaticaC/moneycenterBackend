@@ -32,6 +32,11 @@ const Objective = sequelize.define('objective', {
   icon:{
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  date:{
+    type: DataTypes.STRING,
+    allowNull : true
+
   }
 });
 
