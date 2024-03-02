@@ -1,4 +1,4 @@
-const { getAll, create, getOne, remove, update, verificarOTP, login, logged, resetPassword,updatePassword, verifyGoogleToken, getOneById } = require('../controllers/user.controller');
+const { getAll, create, getOne, remove, update, verificarOTP, login, logged, resetPassword,updatePassword, verifyGoogleToken, getOneById, verifyCode } = require('../controllers/user.controller');
 const express = require('express');
 const routerUser = express.Router();
 const verifyJWT = require('../utils/verifyJwt');
@@ -25,7 +25,7 @@ routerUser.route('/:id')
     .put(verifyJWT, update);    
 
 routerUser.route("/verify/:code")
-    .post(verificarOTP)
+    .post(verifyCode)   //.post(verificarOTP)
 
 routerUser.route('/reset_password/:code')// /reset_password/:code
     .post(updatePassword)    

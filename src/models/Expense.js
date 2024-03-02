@@ -19,7 +19,7 @@ const Expense = sequelize.define('expenses', {
     allowNull: true,
   },
   date: {
-    type: DataTypes.DATEONLY,
+    type: DataTypes.STRING,
     allowNull: true
   },
   icon:{

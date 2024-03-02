@@ -4,7 +4,6 @@ const User = require('../models/User');
 const TransactionType = require('../models/TransactionType')
 
 
-
 const getAll = catchError(async(req, res) => {
     
     const results = await InCome.findAll({include: TransactionType});
@@ -12,12 +11,12 @@ const getAll = catchError(async(req, res) => {
 });
 
 
-const create = catchError(async(req, res) => {
-    // console.log('req.body.user.id:==>',req.body.user.id)
-    // const userId = req.body.user.id;
-    
-    const {name, description, amount, userId, date, transactiontypeId, icon} = req.body;
-    const body = {name, description, amount, userId, date, transactiontypeId, icon};
+const create = catchError(async(req, res) => { // create income
+     //console.log('req.body.user.id:==>',req.body.user.id)
+    const userId = req.user.id;
+    //const transactiontypeId = req.user.id;
+    const {name, description, amount, date, icon} = req.body;  //transactiontypeId
+    const body = {name, description, amount, userId, date,  icon};
     const result = await InCome.create(body);
     return res.status(201).json(result);
 });

@@ -13,8 +13,6 @@ const getAllByUserId = catchError(async(req, res) => {
     return res.json(results);
 });
 
-
-
 const create = catchError(async(req, res) => {
     
     const partialBudget = 0;
