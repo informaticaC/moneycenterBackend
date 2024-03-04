@@ -1,7 +1,6 @@
 const catchError = require('../utils/catchError');
 const User = require('../models/User');
 const bcrypt = require("bcrypt");
-const sendOTP = require('../utils/sendOTP');
 const sendEmail = require('../utils/sendEmail');
 const verifyOTP = require('../utils/verifyOTP');
 const jwt = require("jsonwebtoken");
@@ -48,7 +47,7 @@ const create = catchError(async(req, res) => {
     const result = await createUser(body) ;
 ////////////////
     const frontBaseUrl = 'https://www.google.com'
-    const code = 112233;//require('crypto').randomBytes(64).toString('hex')
+    const code = Math.floor(Math.random() * 1000000);//require('crypto').randomBytes(64).toString('hex')
     const url = `${frontBaseUrl}/verify_email/${code}`
 
     await sendEmail({
@@ -116,15 +115,15 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
           return(newUser);
         }
         
-        goToCreate(userToCreate).then((respuesta)=> {
+        goToCreate(userToCreate).then((res)=> {
           const token = jwt.sign( // cuando el usuario se crea en la base de datos creamos el token para devolverlo junto con el usuario creado
-            {respuesta},
+            {res},
             process.env.TOKEN_SECRET,
             {expiresIn:"1d"}
           ) 
-            //console.log(json({respuesta, token }))
-            //console.log('l 108 respuesta:==>>>', respuesta);
-            return res.json({respuesta, token})
+            //console.log(json({res, token }))
+            //console.log('l 108 res:==>>>', res);
+            return res.json({res, token})
         }).catch(console.error);
        
       }); 
@@ -134,7 +133,6 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
   verify().catch(console.error);
 
 }) // end verifyGoogleToken - Create user if not exist
-
 
 const getOne = catchError(async(req, res) => {
     const { id } = req.params;
@@ -168,11 +166,11 @@ const update = catchError(async(req, res) => {
 
 const verifyCode = catchError(async (req, res) => {
   const {code} = req.params;
-  console.log('code de req.params:==>>',code);
+  //console.log('code de req.params:==>>',code);
   const codeUser = await EmailCode.findOne({where:{code}});
-  console.log('linea 173 codeUser:==>>', codeUser);
+  //console.log('linea 173 codeUser:==>>', codeUser);
   if (!codeUser) return res.sendStatus(401);
-  console.log(codeUser);
+  //console.log(codeUser);
   const body = {isVerified:true};
   const userUpdate = User.update(body,{where: {id:codeUser.userId}});
   await codeUser.destroy();
@@ -234,15 +232,15 @@ const resetPassword = catchError( async (req, res) => {
   if(!user) return res.sendStatus(401);
   console.log(user)
 
-  //const code = Math.floor(100000 + Math.random() * 900000);
-  const code = 112233;
+  
+  const code = Math.floor(Math.random() * 1000000);
   //const url = `${frontBaseUrl}/reset_password/${code}`
 
   await sendEmail({
       to:email,
-      subject: "Solicitud de cambio de contraseña",
+      subject: "Money Center, solicitud de cambio de contraseña",
       html:`
-      <h2>este es tu codigo para cambio de contraseña </h2>
+      <h2>Este es tu codigo de confirmación para cambio de contraseña </h2>
       <p> ${code}</p>
       `
   })
@@ -255,19 +253,21 @@ const resetPassword = catchError( async (req, res) => {
 })
 
 const updatePassword = catchError(async (req, res) => {
-  
-  const {password,code}=req.body;
+  console.log('updatePassword, req.body:==>>>',req.body);
+  //const {password,code}=req.body;
+  const {password, email}=req.body;
 
-  const userCode = await EmailCode.findOne({where:{code}});
-  if(!userCode) return res.sendStatus(401);
+  // const userCode = await EmailCode.findOne({where:{code}});
+  // if(!userCode) return res.sendStatus(401);
 
   const hashPassword = await bcrypt.hash(password,10);
   const body = {password:hashPassword}
 
-  const user = await User.update(body, {where:{id:userCode.userId}})
+  //const user = await User.update(body, {where:{id:userCode.userId}})
+  const user = await User.update(body, {where:{email}})
   if(user[0] === 0) return res.sendStatus(404);
 
-  await userCode.destroy();
+  //await userCode.destroy();
   return res.json(user);
 
 })
