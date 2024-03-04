@@ -16,7 +16,7 @@ const InCome = sequelize.define('income', {
       allowNull: false,
     },
     date: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.STRING,
       allowNull: true
     },
     icon:{

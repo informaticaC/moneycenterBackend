@@ -1,7 +1,6 @@
 const catchError = require('../utils/catchError');
 const User = require('../models/User');
 const bcrypt = require("bcrypt");
-const sendOTP = require('../utils/sendOTP');
 const sendEmail = require('../utils/sendEmail');
 const verifyOTP = require('../utils/verifyOTP');
 const jwt = require("jsonwebtoken");
@@ -37,7 +36,7 @@ const createUser = async (userBody) => {  //Aquí se crea el usuario, ya sea de 
 }/// End createUser
 
 const create = catchError(async(req, res) => {
-  console.log('l19 req.body.email: ==> ', req.body.email);
+  console.log('l40 req.body.email: ==> ', req.body.email);
   const { firstname, lastname, phone, email, password, role, image } = req.body;
   const defaultRole = role || "user";
   const userExist = await User.findAll({where: {email}})
@@ -46,9 +45,26 @@ const create = catchError(async(req, res) => {
     const hashPassword = await bcrypt.hash(password, 10);
     const body = {firstname, lastname, phone, email, image, password: hashPassword, role: defaultRole};
     const result = await createUser(body) ;
+////////////////
+    const frontBaseUrl = 'https://www.google.com'
+    const code = Math.floor(Math.random() * 1000000);//require('crypto').randomBytes(64).toString('hex')
+    const url = `${frontBaseUrl}/verify_email/${code}`
+
+    await sendEmail({
+        to:email,
+        subject: "Verificación de cuenta",
+        html:`
+        <h2>Ingrese el siguiente código en Money Center para verificar su correo</h2>
+        <p>Codigo: <strong>${code}</strong></p>
+        `
+    })
+
+    const bodyCode = {code, userId:result.id} //Guardar el código y el id del usuario
+    await EmailCode.create(bodyCode);// en el modelo EmailCode
+////////////////
     //const verification = await sendOTP(phone);
     //return res.json({ result, verification});
-    console.log(result);
+    console.log('Usuario creado:>>>>',result);
     if (!result) return res.json(`The email ${body.email} is already registered`);
     return res.json(result);
   }  else { return res.sendStatus(500)}   
@@ -99,26 +115,24 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
           return(newUser);
         }
         
-        goToCreate(userToCreate).then((respuesta)=> {
+        goToCreate(userToCreate).then((res)=> {
           const token = jwt.sign( // cuando el usuario se crea en la base de datos creamos el token para devolverlo junto con el usuario creado
-            {respuesta},
+            {res},
             process.env.TOKEN_SECRET,
             {expiresIn:"1d"}
           ) 
-            //console.log(json({respuesta, token }))
-            //console.log('l 108 respuesta:==>>>', respuesta);
-            return res.json({respuesta, token})
+            //console.log(json({res, token }))
+            //console.log('l 108 res:==>>>', res);
+            return res.json({res, token})
         }).catch(console.error);
        
       }); 
       
     } //end verify function
     
-   
   verify().catch(console.error);
 
 }) // end verifyGoogleToken - Create user if not exist
-
 
 const getOne = catchError(async(req, res) => {
     const { id } = req.params;
@@ -150,23 +164,36 @@ const update = catchError(async(req, res) => {
     return res.json(result[1][0]);
 });
 
+const verifyCode = catchError(async (req, res) => {
+  const {code} = req.params;
+  //console.log('code de req.params:==>>',code);
+  const codeUser = await EmailCode.findOne({where:{code}});
+  //console.log('linea 173 codeUser:==>>', codeUser);
+  if (!codeUser) return res.sendStatus(401);
+  //console.log(codeUser);
+  const body = {isVerified:true};
+  const userUpdate = User.update(body,{where: {id:codeUser.userId}});
+  await codeUser.destroy();
+  return  res.sendStatus(200); //res.json(userUpdate[1][0]).sendStatus(200);
+})
+
 const verificarOTP = catchError(async (req, res) => {
-    const {phone, code} = req.body;
+  const {phone, code} = req.body;
+    
+    // Llama a la función verifyOTP para verificar el OTP
+    const verification = await verifyOTP(phone, code);
+    const user = await User.findOne( verification.phone ); // Encuentra el usuario por número de teléfono (ajusta según tu esquema)
+    // Verifica el estado de la verificación (verificationResult.status)
+    if (verification.status === 'approved') {
+      // La verificación fue exitosa, puedes realizar acciones adicionales aquí
+      user.isVerified = true; // Actualiza el campo isVerified a true
+      await user.save(); 
       
-      // Llama a la función verifyOTP para verificar el OTP
-      const verification = await verifyOTP(phone, code);
-      const user = await User.findOne( verification.phone ); // Encuentra el usuario por número de teléfono (ajusta según tu esquema)
-      // Verifica el estado de la verificación (verificationResult.status)
-      if (verification.status === 'approved') {
-        // La verificación fue exitosa, puedes realizar acciones adicionales aquí
-        user.isVerified = true; // Actualiza el campo isVerified a true
-        await user.save(); 
-        
-        return res.json(user);
-      } else {
-        // La verificación falló, puedes manejar el error aquí
-        return res.status(401).json({ error: 'Verificación fallida' });
-      }
+      return res.json(user);
+    } else {
+      // La verificación falló, puedes manejar el error aquí
+      return res.status(401).json({ error: 'Verificación fallida' });
+    }
   });
 
   const login = catchError(async (req,res)=>{
@@ -199,21 +226,22 @@ const logged = catchError(async(req,res)=>{
 });
 
 const resetPassword = catchError( async (req, res) => {
-  const {email,frontBaseUrl} = req.body
+  console.log(req.body);
+  const {email} = req.body
   const user = await User.findOne({where:{email}});
   if(!user) return res.sendStatus(401);
   console.log(user)
 
   
-  const code = Math.floor(100000 + Math.random() * 900000);
-  const url = `${frontBaseUrl}/reset_password/${code}`
+  const code = Math.floor(Math.random() * 1000000);
+  //const url = `${frontBaseUrl}/reset_password/${code}`
 
   await sendEmail({
       to:email,
-      subject: "Solicitud de cambio de contraseña",
+      subject: "Money Center, solicitud de cambio de contraseña",
       html:`
-      <h2>este es tu codigo para cambio de contraseña </h2>
-      <p> ${url}</p>
+      <h2>Este es tu codigo de confirmación para cambio de contraseña </h2>
+      <p> ${code}</p>
       `
   })
 
@@ -225,19 +253,21 @@ const resetPassword = catchError( async (req, res) => {
 })
 
 const updatePassword = catchError(async (req, res) => {
-  
-  const {password,code}=req.body;
+  console.log('updatePassword, req.body:==>>>',req.body);
+  //const {password,code}=req.body;
+  const {password, email}=req.body;
 
-  const userCode = await EmailCode.findOne({where:{code}});
-  if(!userCode) return res.sendStatus(401);
+  // const userCode = await EmailCode.findOne({where:{code}});
+  // if(!userCode) return res.sendStatus(401);
 
   const hashPassword = await bcrypt.hash(password,10);
   const body = {password:hashPassword}
 
-  const user = await User.update(body, {where:{id:userCode.userId}})
+  //const user = await User.update(body, {where:{id:userCode.userId}})
+  const user = await User.update(body, {where:{email}})
   if(user[0] === 0) return res.sendStatus(404);
 
-  await userCode.destroy();
+  //await userCode.destroy();
   return res.json(user);
 
 })
@@ -250,6 +280,7 @@ module.exports = {
     remove,
     update,
     verificarOTP,
+    verifyCode,
     login,
     logged,
     resetPassword,

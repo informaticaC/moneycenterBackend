@@ -9,7 +9,6 @@ const EmailCode = require("./EmailCode");
 InCome.belongsTo(User) 
 User.hasMany(InCome)
 
-
 //Objective => UsersId
 Objective.belongsTo(User)
 User.hasMany(Objective)
