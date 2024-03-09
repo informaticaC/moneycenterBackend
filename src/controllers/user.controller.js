@@ -47,7 +47,7 @@ const create = catchError(async(req, res) => {
     const result = await createUser(body) ;
 ////////////////
     const frontBaseUrl = 'https://www.google.com'
-    const code = Math.floor(Math.random() * 1000000);//require('crypto').randomBytes(64).toString('hex')
+    const code = Math.floor(Math.random() * (1000000-100000)+100000);//require('crypto').randomBytes(64).toString('hex')
     const url = `${frontBaseUrl}/verify_email/${code}`
 
     await sendEmail({
