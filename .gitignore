@@ -5,6 +5,7 @@ node_modules/
 
 .env
 .env.old
+.env2
 # Expo
 .expo/
 dist/

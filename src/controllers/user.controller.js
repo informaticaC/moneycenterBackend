@@ -23,20 +23,18 @@ const createUser = async (userBody) => {  //Aquí se crea el usuario, ya sea de 
   
   if (await userExist(userBody)){
     const user = await userExist(userBody)
-    console.log('linea 27:=====<<<>>>>', user[0])
+    //console.log('linea 27:=====<<<>>>>', user[0])
     return user[0]
   } 
     else {
     const newUser = await User.create(userBody);
     //console.log('l 21 newUser user created:===>', newUser.dataValues);
     return newUser;
-
   }
-    
 }/// End createUser
 
 const create = catchError(async(req, res) => {
-  console.log('l40 req.body.email: ==> ', req.body.email);
+  //console.log('l40 req.body.email: ==> ', req.body.email);
   const { firstname, lastname, phone, email, password, role, image } = req.body;
   const defaultRole = role || "user";
   const userExist = await User.findAll({where: {email}})
@@ -46,9 +44,9 @@ const create = catchError(async(req, res) => {
     const body = {firstname, lastname, phone, email, image, password: hashPassword, role: defaultRole};
     const result = await createUser(body) ;
 ////////////////
-    const frontBaseUrl = 'https://www.google.com'
+    //const frontBaseUrl = 'https://www.google.com'
     const code = Math.floor(Math.random() * (1000000-100000)+100000);//require('crypto').randomBytes(64).toString('hex')
-    const url = `${frontBaseUrl}/verify_email/${code}`
+    //const url = `${frontBaseUrl}/verify_email/${code}`
 
     await sendEmail({
         to:email,
@@ -64,7 +62,7 @@ const create = catchError(async(req, res) => {
 ////////////////
     //const verification = await sendOTP(phone);
     //return res.json({ result, verification});
-    console.log('Usuario creado:>>>>',result);
+    //console.log('Usuario creado:>>>>',result);
     if (!result) return res.json(`The email ${body.email} is already registered`);
     return res.json(result);
   }  else { return res.sendStatus(500)}   
@@ -74,10 +72,11 @@ const create = catchError(async(req, res) => {
 const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleToken - Create user if not exist
   const CLIENT_ID = process.env.CLIENT_ID;
   const { idToken : token } = req.body;
-  //console.log('l 67 idToken received:==>>> : ',  token);
+  console.log('l 77 idToken received:==>>> : ',  token);
   const client = new OAuth2Client();
   let userToCreate;
   
+  let response;
   async function verify() {
     const ticket = client.verifyIdToken({
         idToken: token,
@@ -87,7 +86,7 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
     });
     ticket.then(salida => 
       {
-        //console.log('l87 salida.getPayload:==>',salida.getPayload())
+        console.log('l 90 salida.getPayload:==>',salida.getPayload())
         const userVerified={
           firstname: salida.getPayload().given_name,
           lastname: salida.getPayload().family_name,
@@ -107,31 +106,31 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
             isVerified: true
           
         }
-        //console.log('l 89 userToCreate:==>', userToCreate);
+        console.log('user.controller.js, l 110 userToCreate:==>', userToCreate);
 
         async function goToCreate(userToCreate){
           //console.log('l 91 userToCreate:==>', userToCreate);
           const newUser = await createUser(userToCreate);
           return(newUser);
         }
-        
-        goToCreate(userToCreate).then((res)=> {
+        goToCreate(userToCreate).then((resp)=> {
+          console.log('line 119, res from goToCreate(newUser): -+-+-+-==>>', resp.dataValues);
           const token = jwt.sign( // cuando el usuario se crea en la base de datos creamos el token para devolverlo junto con el usuario creado
-            {res},
+            {resp},
             process.env.TOKEN_SECRET,
             {expiresIn:"1d"}
           ) 
-            //console.log(json({res, token }))
-            //console.log('l 108 res:==>>>', res);
-            return res.json({res, token})
-        }).catch(console.error);
-       
-      }); 
+          // console.log('linea124:=-*-*-*-*-**-*-*-*-*-*-*-*-*-*-*-*==>>>')
+           const  user = resp.dataValues;
+           return res.json({user, token});
+          }).catch(err => console.error(err));
+          
+        }); 
+        
+      } //end verify function
       
-    } //end verify function
-    
-  verify().catch(console.error);
-
+      verify().catch(console.error);
+  
 }) // end verifyGoogleToken - Create user if not exist
 
 const getOne = catchError(async(req, res) => {
@@ -171,33 +170,41 @@ const verifyCode = catchError(async (req, res) => {
   //console.log('linea 173 codeUser:==>>', codeUser);
   if (!codeUser) return res.sendStatus(401);
   //console.log(codeUser);
+  const user = await User.findOne({where: {id:codeUser.userId}});
+  //console.log(user);
+  if (user.isVerified){
+    console.log(`${user.email} ya verificado!! o sea que el usuario ya existe, y es por cambio de contraseña`);
+    await codeUser.destroy();
+    return res.sendStatus(202);
+  }
   const body = {isVerified:true};
-  const userUpdate = User.update(body,{where: {id:codeUser.userId}});
+  const userUpdate = await User.update(body,{where: {id:codeUser.userId}});
   await codeUser.destroy();
+  console.log('codeUser borrado!!!!')
   return  res.sendStatus(200); //res.json(userUpdate[1][0]).sendStatus(200);
 })
 
-const verificarOTP = catchError(async (req, res) => {
-  const {phone, code} = req.body;
+// const verificarOTP = catchError(async (req, res) => {
+//   const {phone, code} = req.body;
     
-    // Llama a la función verifyOTP para verificar el OTP
-    const verification = await verifyOTP(phone, code);
-    const user = await User.findOne( verification.phone ); // Encuentra el usuario por número de teléfono (ajusta según tu esquema)
-    // Verifica el estado de la verificación (verificationResult.status)
-    if (verification.status === 'approved') {
-      // La verificación fue exitosa, puedes realizar acciones adicionales aquí
-      user.isVerified = true; // Actualiza el campo isVerified a true
-      await user.save(); 
+//     // Llama a la función verifyOTP para verificar el OTP
+//     const verification = await verifyOTP(phone, code);
+//     const user = await User.findOne( verification.phone ); // Encuentra el usuario por número de teléfono (ajusta según tu esquema)
+//     // Verifica el estado de la verificación (verificationResult.status)
+//     if (verification.status === 'approved') {
+//       // La verificación fue exitosa, puedes realizar acciones adicionales aquí
+//       user.isVerified = true; // Actualiza el campo isVerified a true
+//       await user.save(); 
       
-      return res.json(user);
-    } else {
-      // La verificación falló, puedes manejar el error aquí
-      return res.status(401).json({ error: 'Verificación fallida' });
-    }
-  });
+//       return res.json(user);
+//     } else {
+//       // La verificación falló, puedes manejar el error aquí
+//       return res.status(401).json({ error: 'Verificación fallida' });
+//     }
+//   });
 
   const login = catchError(async (req,res)=>{
-    console.log(req.body)
+    //console.log(req.body)
     const {email, password} = req.body
     if (!password) return res.sendStatus(401)
     //verificacion email
@@ -226,11 +233,11 @@ const logged = catchError(async(req,res)=>{
 });
 
 const resetPassword = catchError( async (req, res) => {
-  console.log(req.body);
+  //console.log(req.body);
   const {email} = req.body
   const user = await User.findOne({where:{email}});
   if(!user) return res.sendStatus(401);
-  console.log(user)
+  //console.log(user)
 
   
   const code = Math.floor(Math.random() * 1000000);
@@ -253,7 +260,7 @@ const resetPassword = catchError( async (req, res) => {
 })
 
 const updatePassword = catchError(async (req, res) => {
-  console.log('updatePassword, req.body:==>>>',req.body);
+  //console.log('updatePassword, req.body:==>>>',req.body);
   //const {password,code}=req.body;
   const {password, email}=req.body;
 
@@ -279,7 +286,7 @@ module.exports = {
     getOne,
     remove,
     update,
-    verificarOTP,
+    //verificarOTP,
     verifyCode,
     login,
     logged,

@@ -15,8 +15,11 @@ const getAllByUserId = catchError(async(req, res) => {
 
 const create = catchError(async(req, res) => {
     
+    console.log('req, línea 18 objective controller, create :==>>>',req)
+    const userId = req.user.id;
+    console.log("userId:==>>", userId);
     const partialBudget = 0;
-    const {name, description, budget, deadline, userId, icon, color} = req.body;
+    const {name, description, budget, deadline, icon, color} = req.body;
     const body = {name, description, budget, partialBudget, deadline, icon, color , userId};
     const result = await Objective.create(body);
     return res.status(201).json(result);
