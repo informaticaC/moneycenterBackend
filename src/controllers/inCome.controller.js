@@ -10,6 +10,16 @@ const getAll = catchError(async(req, res) => {
     return res.json(results);
 });
 
+const getAllByUserId = catchError(async(req, res) => {
+    //console.log('');
+    //console.log('User to require incomes:==>',req.user);
+    //console.log('');
+    const userId = req.user.id;
+    //console.log('userId for incomes:===>', userId);
+    const incomes = await InCome.findAll({ where : {userId} });
+    //console.log(incomes);   
+    return res.json(incomes);
+});
 
 const create = catchError(async(req, res) => { // create income
      //console.log('req.body.user.id:==>',req.body.user.id)
@@ -47,12 +57,6 @@ const getOne = catchError(async(req, res) => {
     return res.json(result);
 });
 
-const getAllByUserId = catchError(async(req, res) => {
-    const userId = req.params;
-    const incomes = await InCome.findAll({ where : userId });
-       
-    return res.json({incomes});
-});
 
 const remove = catchError(async(req, res) => {
     const { id } = req.params;

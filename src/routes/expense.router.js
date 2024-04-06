@@ -8,7 +8,7 @@ routerExpense.route('/')
     .get(verifyJWT, getAll)
     .post(verifyJWT, create);
 
-routerExpense.route('/byUserId/:userId')
+routerExpense.route('/getExpenses')
     .get(verifyJWT,  getAllByUserId);
 
 routerExpense.route('/:id')

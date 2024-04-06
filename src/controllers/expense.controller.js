@@ -8,9 +8,10 @@ const getAll = catchError(async(req, res) => {
 });
 
 const getAllByUserId = catchError(async(req, res) => {
-    const userId = req.params;
-    const expenses = await Expense.findAll({ where : userId });
-    return res.json({expenses});
+    const userId = req.user.id;
+    console.log('userId for expenses:=====>>>:', userId, req.user.email)
+    const expenses = await Expense.findAll({ where : {userId} });
+    return res.json(expenses);
 });
 
 const create = catchError(async(req, res) => {

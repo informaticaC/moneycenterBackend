@@ -8,13 +8,13 @@ routerInCome.route('/')
     .get(verifyJWT, getAll)
     .post(verifyJWT, create);
 
+routerInCome.route('/getIncomes')
+    .get(verifyJWT,  getAllByUserId);
+
 routerInCome.route('/:id')
     .get(verifyJWT,  getOne)
     .delete(verifyJWT, remove)
     .put(verifyJWT, update);
-
-routerInCome.route('/byUserId/:userId')
-    .get(verifyJWT,  getAllByUserId);
 
 routerInCome.route('/:id/users')
     .post(verifyJWT, setUser);

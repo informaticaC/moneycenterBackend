@@ -106,7 +106,7 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
             isVerified: true
           
         }
-        console.log('user.controller.js, l 110 userToCreate:==>', userToCreate);
+        //console.log('user.controller.js, l 110 userToCreate:==>', userToCreate);
 
         async function goToCreate(userToCreate){
           //console.log('l 91 userToCreate:==>', userToCreate);
@@ -114,14 +114,15 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
           return(newUser);
         }
         goToCreate(userToCreate).then((resp)=> {
-          console.log('line 119, res from goToCreate(newUser): -+-+-+-==>>', resp.dataValues);
+          
+          const  user = resp.dataValues;
+          //console.log('line 119, res from goToCreate(newUser): -+-+-+-==>>', resp.dataValues);
           const token = jwt.sign( // cuando el usuario se crea en la base de datos creamos el token para devolverlo junto con el usuario creado
-            {resp},
+            {user},
             process.env.TOKEN_SECRET,
             {expiresIn:"1d"}
           ) 
           // console.log('linea124:=-*-*-*-*-**-*-*-*-*-*-*-*-*-*-*-*==>>>')
-           const  user = resp.dataValues;
            return res.json({user, token});
           }).catch(err => console.error(err));
           
@@ -163,7 +164,7 @@ const update = catchError(async(req, res) => {
     return res.json(result[1][0]);
 });
 
-const verifyCode = catchError(async (req, res) => {
+const verifyCode = catchError(async (req, res) => {//virify the code sended by email
   const {code} = req.params;
   //console.log('code de req.params:==>>',code);
   const codeUser = await EmailCode.findOne({where:{code}});
