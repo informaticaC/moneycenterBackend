@@ -86,7 +86,7 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
     });
     ticket.then(salida => 
       {
-        console.log('l 90 salida.getPayload:==>',salida.getPayload())
+        //console.log('l 90 salida.getPayload:==>',salida.getPayload())
         const userVerified={
           firstname: salida.getPayload().given_name,
           lastname: salida.getPayload().family_name,
@@ -164,7 +164,7 @@ const update = catchError(async(req, res) => {
     return res.json(result[1][0]);
 });
 
-const verifyCode = catchError(async (req, res) => {//virify the code sended by email
+const verifyCode = catchError(async (req, res) => {//verify the code sended by email
   const {code} = req.params;
   //console.log('code de req.params:==>>',code);
   const codeUser = await EmailCode.findOne({where:{code}});
