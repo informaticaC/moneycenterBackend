@@ -53,7 +53,7 @@ const create = catchError(async(req, res) => {
         subject: "Verificación de cuenta",
         html:`
         <h2>Ingrese el siguiente código en Money Center para verificar su correo</h2>
-        <p>Codigo: <strong>${code}</strong></p>
+        <h3>Codigo: <strong>${code}</strong></h3>
         `
     })
 
@@ -72,7 +72,7 @@ const create = catchError(async(req, res) => {
 const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleToken - Create user if not exist
   const CLIENT_ID = process.env.CLIENT_ID;
   const { idToken : token } = req.body;
-  console.log('l 77 idToken received:==>>> : ',  token);
+  //console.log('l 77 idToken received:==>>> : ',  token);
   const client = new OAuth2Client();
   let userToCreate;
   
@@ -117,8 +117,8 @@ const verifyGoogleToken = catchError(async(req, res)=> { // Start verifyGoogleTo
           
           const  user = resp.dataValues;
           //console.log('line 119, res from goToCreate(newUser): -+-+-+-==>>', resp.dataValues);
-          const token = jwt.sign( // cuando el usuario se crea en la base de datos creamos el token para devolverlo junto con el usuario creado
-            {user},
+          const token = jwt.sign( // when the user is created in the database 
+            {user},               // we create the token to return it along with the created user
             process.env.TOKEN_SECRET,
             {expiresIn:"1d"}
           ) 
@@ -174,14 +174,14 @@ const verifyCode = catchError(async (req, res) => {//verify the code sended by e
   const user = await User.findOne({where: {id:codeUser.userId}});
   //console.log(user);
   if (user.isVerified){
-    console.log(`${user.email} ya verificado!! o sea que el usuario ya existe, y es por cambio de contraseña`);
+    //console.log(`${user.email} already verified! the request is for pass change`);
     await codeUser.destroy();
     return res.sendStatus(202);
   }
   const body = {isVerified:true};
   const userUpdate = await User.update(body,{where: {id:codeUser.userId}});
   await codeUser.destroy();
-  console.log('codeUser borrado!!!!')
+  //console.log('codeUser borrado!!!!')
   return  res.sendStatus(200); //res.json(userUpdate[1][0]).sendStatus(200);
 })
 
@@ -249,7 +249,7 @@ const resetPassword = catchError( async (req, res) => {
       subject: "Money Center, solicitud de cambio de contraseña",
       html:`
       <h2>Este es tu codigo de confirmación para cambio de contraseña </h2>
-      <p> ${code}</p>
+      <h3> ${code}</h3>
       `
   })
 

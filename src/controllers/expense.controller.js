@@ -9,13 +9,13 @@ const getAll = catchError(async(req, res) => {
 
 const getAllByUserId = catchError(async(req, res) => {
     const userId = req.user.id;
-    console.log('userId for expenses:=====>>>:', userId, req.user.email)
+    //console.log('userId for expenses:=====>>>:', userId, req.user.email)
     const expenses = await Expense.findAll({ where : {userId} });
     return res.json(expenses);
 });
 
 const create = catchError(async(req, res) => {
-    console.log('req.user from expense:======>>>', req.user);
+    //console.log('req.user from expense:======>>>', req.user);
     const userId = await req.user.id;
     const transactiontypeId = 1;
     const {name, description, amount, date, icon} = req.body; //transactiontypeId,
